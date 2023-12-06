@@ -66,14 +66,19 @@ module.exports.updateUserById = async (req, res) => {
     const userId = req.user._id;
     const { name, about } = req.body;
 
-    const user = await User.findByIdAndUpdate(userId, { name, about }).orFail(
-      () => new NotFoundError('Пользователь по заданному ID не найден'),
-    );
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { name, about },
+      { new: true, runValidators: true },
+    ).orFail(() => NotFoundError('Пользователь по заданному ID не найден'));
+
     return res.status(200).send(user);
   } catch (error) {
     switch (error.name) {
-      case 'CastError':
-        return res.status(400).send({ message: 'Передан не валидный ID' });
+      case 'ValidationError':
+        return res
+          .status(400)
+          .send({ message: 'Ошибка валидации полей', error: error.message });
 
       case 'NotFoundError':
         return res.status(error.statusCode).send({ message: error.message });
@@ -89,14 +94,18 @@ module.exports.updateAvatarUserById = async (req, res) => {
     const userId = req.user._id;
     const { avatar } = req.body;
 
-    const user = await User.findByIdAndUpdate(userId, { avatar }).orFail(
-      () => new NotFoundError('Пользователь по заданному ID не найден'),
-    );
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { avatar },
+      { new: true, runValidators: true },
+    ).orFail(() => new NotFoundError('Пользователь по заданному ID не найден'));
     return res.status(200).send(user);
   } catch (error) {
     switch (error.name) {
-      case 'CastError':
-        return res.status(400).send({ message: 'Передан не валидный ID' });
+      case 'ValidationError':
+        return res
+          .status(400)
+          .send({ message: 'Ошибка валидации полей', error: error.message });
 
       case 'NotFoundError':
         return res.status(error.statusCode).send({ message: error.message });
