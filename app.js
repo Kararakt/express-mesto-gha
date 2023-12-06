@@ -22,4 +22,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
+app.use((req, res) => {
+  res.status(404).json({ message: 'Такого пути не существует!' });
+});
+
 app.listen(PORT);
