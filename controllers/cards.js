@@ -33,15 +33,26 @@ module.exports.createCard = async (req, res) => {
 module.exports.deleteCard = async (req, res) => {
   try {
     const { cardId } = req.params;
+    const userId = req.user._id;
+
     const card = await Card.findByIdAndDelete(cardId).orFail(
       () => new NotFoundError('Карточка по заданному ID не найдена'),
     );
+
+    if (card.owner === userId) {
+      throw new Error('Forbidden');
+    }
 
     return res.status(200).send(card);
   } catch (error) {
     switch (error.name) {
       case 'CastError':
         return res.status(400).send({ message: 'Передан не валидный ID' });
+
+      case 'Forbidden':
+        return res
+          .status(403)
+          .send({ message: 'Нельзя удалить чужую карточку' });
 
       case 'NotFoundError':
         return res.status(error.statusCode).send({ message: error.message });
