@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 const Card = require('../models/card');
 const NotFoundError = require('../utils/NotFoundError');
 
@@ -35,30 +36,29 @@ module.exports.deleteCard = async (req, res) => {
     const { cardId } = req.params;
     const userId = req.user._id;
 
-    const card = await Card.findByIdAndDelete(cardId).orFail(
+    const card = await Card.findById(cardId).orFail(
       () => new NotFoundError('Карточка по заданному ID не найдена'),
     );
 
-    if (card.owner === userId) {
+    if (card.owner.toString() !== userId) {
       throw new Error('Forbidden');
     }
 
-    return res.status(200).send(card);
+    const cardDelete = await Card.findByIdAndDelete(cardId).orFail(
+      () => new NotFoundError('Карточка по заданному ID не найдена'),
+    );
+    return res.status(200).send(cardDelete);
   } catch (error) {
-    switch (error.name) {
-      case 'CastError':
-        return res.status(400).send({ message: 'Передан не валидный ID' });
+    if (error.name === 'CastError') {
+      return res.status(400).send({ message: 'Передан не валидный ID' });
+    }
 
-      case 'Forbidden':
-        return res
-          .status(403)
-          .send({ message: 'Нельзя удалить чужую карточку' });
+    if (error.name === 'NotFoundError') {
+      return res.status(error.statusCode).send({ message: error.message });
+    }
 
-      case 'NotFoundError':
-        return res.status(error.statusCode).send({ message: error.message });
-
-      default:
-        return res.status(500).send({ message: 'Ошибка на стороне сервера' });
+    if (error.message === 'Forbidden') {
+      return res.status(403).send({ message: 'Нельзя удалить чужую карточку' });
     }
   }
 };
