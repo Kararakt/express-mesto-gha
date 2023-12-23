@@ -173,8 +173,16 @@ module.exports.login = async (req, res) => {
 
     const token = generateToken({ _id: user._id });
 
-    return res.status(200).send({ data: { email: user.email, _id: user._id }, token });
+    return res
+      .status(200)
+      .send({ data: { email: user.email, _id: user._id }, token });
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res
+        .status(400)
+        .send({ message: 'Ошибка валидации полей', error: error.message });
+    }
+
     if (error.message === 'NotAuthenticate') {
       return res
         .status(401)

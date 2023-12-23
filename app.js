@@ -17,8 +17,6 @@ const app = express();
 
 app.use(helmet());
 
-app.use(errors());
-
 mongoose.connect(DB_URL);
 
 app.use(bodyParser.json());
@@ -33,6 +31,8 @@ app.use('/cards', auth, require('./routes/cards'));
 app.use((req, res) => {
   res.status(404).json({ message: 'Такого пути не существует!' });
 });
+
+app.use(errors());
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
