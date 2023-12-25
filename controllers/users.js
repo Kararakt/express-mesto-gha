@@ -28,7 +28,7 @@ module.exports.getUser = async (req, res, next) => {
     return res.status(200).send(user);
   } catch (error) {
     if (error.name === 'CastError') {
-      next(new BadRequestError('Передан не валидный ID'));
+      return next(new BadRequestError('Передан не валидный ID'));
     }
 
     return next(error);
@@ -45,7 +45,7 @@ module.exports.getUserById = async (req, res, next) => {
     return res.status(200).send(user);
   } catch (error) {
     if (error.name === 'CastError') {
-      next(new BadRequestError('Передан не валидный ID'));
+      return next(new BadRequestError('Передан не валидный ID'));
     }
 
     return next(error);
@@ -76,10 +76,12 @@ module.exports.createUser = async (req, res, next) => {
       _id: newUser._id,
     });
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      return next(BadRequestError('Некорректные данные при создании карточки'));
+    }
+
     if (error.name === 'MongoServerError' && error.code === 11000) {
-      next(new ConflictError('Такой пользователь уже существует'));
-    } else {
-      next(error);
+      return next(new ConflictError('Такой пользователь уже существует'));
     }
 
     return next(error);
@@ -99,6 +101,10 @@ module.exports.updateUserById = async (req, res, next) => {
 
     return res.status(200).send(user);
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      return next(BadRequestError('Некорректные данные при создании карточки'));
+    }
+
     return next(error);
   }
 };
@@ -115,6 +121,10 @@ module.exports.updateAvatarUserById = async (req, res, next) => {
     ).orFail(() => new NotFoundError('Пользователь по заданному ID не найден'));
     return res.status(200).send(user);
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      return next(BadRequestError('Некорректные данные при создании карточки'));
+    }
+
     return next(error);
   }
 };
@@ -139,7 +149,7 @@ module.exports.login = async (req, res, next) => {
       .send({ data: { email: user.email, _id: user._id }, token });
   } catch (error) {
     if (error.message === 'NotAuthenticate') {
-      next(new UnauthorizedError('Неправильный email или password'));
+      return next(new UnauthorizedError('Неправильный email или password'));
     }
 
     return next(error);

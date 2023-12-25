@@ -21,6 +21,10 @@ module.exports.createCard = async (req, res, next) => {
 
     return res.status(201).send(newCard);
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      return next(BadRequestError('Некорректные данные при создании карточки'));
+    }
+
     return next(error);
   }
 };
@@ -44,11 +48,11 @@ module.exports.deleteCard = async (req, res, next) => {
     return res.status(200).send(cardDelete);
   } catch (error) {
     if (error.name === 'CastError') {
-      next(new BadRequestError('Передан не валидный ID'));
+      return next(new BadRequestError('Передан не валидный ID'));
     }
 
     if (error.message === 'Forbidden') {
-      next(new ForbiddenError('Нельзя удалить чужую карточку'));
+      return next(new ForbiddenError('Нельзя удалить чужую карточку'));
     }
 
     return next(error);
@@ -67,7 +71,7 @@ module.exports.likeCard = async (req, res, next) => {
     return res.status(200).send(card);
   } catch (error) {
     if (error.name === 'CastError') {
-      next(new BadRequestError('Передан не валидный ID'));
+      return next(new BadRequestError('Передан не валидный ID'));
     }
 
     return next(error);
@@ -86,7 +90,7 @@ module.exports.dislikeCard = async (req, res, next) => {
     return res.status(200).send(card);
   } catch (error) {
     if (error.name === 'CastError') {
-      next(new BadRequestError('Передан не валидный ID'));
+      return next(new BadRequestError('Передан не валидный ID'));
     }
 
     return next(error);
