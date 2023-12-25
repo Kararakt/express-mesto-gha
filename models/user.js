@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema(
       default:
         'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
       validate: {
-        validator: (v) => /^(https?:\/\/)(www\.)?([a-zA-Z0-9-._~:\/?#[\]@!$&'()*+,;=]+#?)$/.test(
+        validator: (v) => /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/.test(
           v,
         ),
         message: 'Неправильный формат ссылки',

@@ -1,5 +1,6 @@
 /* eslint-disable consistent-return */
 const jwt = require('jsonwebtoken');
+const UnauthorizedError = require('../utils/UnauthorizedError');
 
 module.exports = (req, res, next) => {
   let payload;
@@ -14,11 +15,11 @@ module.exports = (req, res, next) => {
     payload = jwt.verify(validToken, 'dev_secret');
   } catch (error) {
     if (error.message === 'NotAuthenticate') {
-      return res.status(401).send({ message: 'Не авторизован' });
+      next(new UnauthorizedError('Требуется авторизация'));
     }
 
     if (error.name === 'JsonWebTokenError') {
-      return res.status(401).send({ message: 'С токеном что-то не так' });
+      next(new UnauthorizedError('С токеном что-то не так'));
     }
   }
 

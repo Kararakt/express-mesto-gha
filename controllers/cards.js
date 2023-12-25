@@ -1,17 +1,19 @@
-/* eslint-disable consistent-return */
 const Card = require('../models/card');
-const NotFoundError = require('../utils/NotFoundError');
 
-module.exports.getCards = async (req, res) => {
+const NotFoundError = require('../utils/NotFoundError');
+const ForbiddenError = require('../utils/ForbiddenError');
+const BadRequestError = require('../utils/BadRequestError');
+
+module.exports.getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({});
     return res.status(200).send(cards);
-  } catch (err) {
-    return res.status(500).send({ message: 'Ошибка на стороне сервера' });
+  } catch (error) {
+    return next(error);
   }
 };
 
-module.exports.createCard = async (req, res) => {
+module.exports.createCard = async (req, res, next) => {
   try {
     const { name, link } = req.body;
     const owner = req.user._id;
@@ -19,19 +21,11 @@ module.exports.createCard = async (req, res) => {
 
     return res.status(201).send(newCard);
   } catch (error) {
-    switch (error.name) {
-      case 'ValidationError':
-        return res
-          .status(400)
-          .send({ message: 'Ошибка валидации полей', error: error.message });
-
-      default:
-        return res.status(500).send({ message: 'Ошибка на стороне сервера' });
-    }
+    return next(error);
   }
 };
 
-module.exports.deleteCard = async (req, res) => {
+module.exports.deleteCard = async (req, res, next) => {
   try {
     const { cardId } = req.params;
     const userId = req.user._id;
@@ -50,20 +44,18 @@ module.exports.deleteCard = async (req, res) => {
     return res.status(200).send(cardDelete);
   } catch (error) {
     if (error.name === 'CastError') {
-      return res.status(400).send({ message: 'Передан не валидный ID' });
-    }
-
-    if (error.name === 'NotFoundError') {
-      return res.status(error.statusCode).send({ message: error.message });
+      next(new BadRequestError('Передан не валидный ID'));
     }
 
     if (error.message === 'Forbidden') {
-      return res.status(403).send({ message: 'Нельзя удалить чужую карточку' });
+      next(new ForbiddenError('Нельзя удалить чужую карточку'));
     }
+
+    return next(error);
   }
 };
 
-module.exports.likeCard = async (req, res) => {
+module.exports.likeCard = async (req, res, next) => {
   try {
     const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(
@@ -74,20 +66,15 @@ module.exports.likeCard = async (req, res) => {
 
     return res.status(200).send(card);
   } catch (error) {
-    switch (error.name) {
-      case 'CastError':
-        return res.status(400).send({ message: 'Передан не валидный ID' });
-
-      case 'NotFoundError':
-        return res.status(error.statusCode).send({ message: error.message });
-
-      default:
-        return res.status(500).send({ message: 'Ошибка на стороне сервера' });
+    if (error.name === 'CastError') {
+      next(new BadRequestError('Передан не валидный ID'));
     }
+
+    return next(error);
   }
 };
 
-module.exports.dislikeCard = async (req, res) => {
+module.exports.dislikeCard = async (req, res, next) => {
   try {
     const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(
@@ -98,15 +85,10 @@ module.exports.dislikeCard = async (req, res) => {
 
     return res.status(200).send(card);
   } catch (error) {
-    switch (error.name) {
-      case 'CastError':
-        return res.status(400).send({ message: 'Передан не валидный ID' });
-
-      case 'NotFoundError':
-        return res.status(error.statusCode).send({ message: error.message });
-
-      default:
-        return res.status(500).send({ message: 'Ошибка на стороне сервера' });
+    if (error.name === 'CastError') {
+      next(new BadRequestError('Передан не валидный ID'));
     }
+
+    return next(error);
   }
 };
