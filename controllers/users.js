@@ -77,7 +77,7 @@ module.exports.createUser = async (req, res, next) => {
     });
   } catch (error) {
     if (error.name === 'ValidationError') {
-      return next(BadRequestError('Некорректные данные при создании карточки'));
+      return next(BadRequestError('Некорректные данные при создании пользователя'));
     }
 
     if (error.name === 'MongoServerError' && error.code === 11000) {
@@ -102,7 +102,7 @@ module.exports.updateUserById = async (req, res, next) => {
     return res.status(200).send(user);
   } catch (error) {
     if (error.name === 'ValidationError') {
-      return next(BadRequestError('Некорректные данные при создании карточки'));
+      return next(BadRequestError('Некорректные данные при обновление пользователя'));
     }
 
     return next(error);
@@ -122,7 +122,7 @@ module.exports.updateAvatarUserById = async (req, res, next) => {
     return res.status(200).send(user);
   } catch (error) {
     if (error.name === 'ValidationError') {
-      return next(BadRequestError('Некорректные данные при создании карточки'));
+      return next(BadRequestError('Некорректные данные при обновление пользователя'));
     }
 
     return next(error);
